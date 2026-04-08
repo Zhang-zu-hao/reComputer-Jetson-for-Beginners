@@ -1,234 +1,227 @@
-# Install Docker
+# Docker on Jetson
 
-​	 Docker is an open platform for building, shipping, and running applications using lightweight, portable containers. A container bundles your app with all its dependencies and runtime into an image, so it runs the same way on any machine—your laptop, a server, or the cloud—without “it works on my machine” issues. Unlike virtual machines, containers share the host OS kernel, making them faster to start and more resource‑efficient. Developers define images with a simple Dockerfile, publish or pull them from registries like Docker Hub, and orchestrate multi‑service setups with Docker Compose. This approach streamlines development, testing, and deployment, improves isolation and security, and makes scaling or rolling back versions straightforward.
+[Back to Module 3](../README.MD) | [Back to Table of Contents](../../Table-of-Contents.md)
 
-<img src="images/image-20250918145816792.png" alt="image-20250918145816792" style="zoom:200%;" />
+## 13 Install Docker and Basic Use
 
-## Install the Docker service on Jetson
+### Introduction
 
-------
+Docker is a lightweight containerized platform for packaging applications and their reliance into separate, portable containers, thus achieving “the same functioning anywhere”. It makes development, testing, deployment processes more consistent and automated through isolation, rapid deployment and efficient use of resources. Docker can significantly improve efficiency and stability, whether through local development, server deployment or large-scale micro-service structures.
 
-### Install Docker CE
+### Install Docker on Jetson
 
-First, update the apt package index：
+Install Docker CE
 
 ```bash
 sudo apt update
+# Install dependencies
 sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
 ```
 
-Add the official Docker GPG key：
+Add Docker official GPG key:
 
 ```bash
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-```
-
-Add the official Docker repository：
-
-```
+# Add the Aliyun Docker repository key
+curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce.gpg
+# Add repository
 echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-  https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-```
-
-Install Docker CE：
-
-```
+"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-ce.gpg] \
+https://mirrors.aliyun.com/docker-ce/linux/ubuntu \
+$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+# Install
 sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-```
-
-Check the installation:
-
-```
+sudo apt install docker-ce docker-ce-cli containerd.io
+# Verify the installation
 docker --version
 ```
 
-------
+![](./images/3-7-docker-01.png)
 
-![image-20250917091343874](images/image-20250917091343874.png)
-
-If the version number can be displayed normally, it indicates that the installation was successful.
-
-### Install NVIDIA Container Toolkit
-
-​	**NVIDIA Container Toolkit** is a software suite that enables Docker containers to access NVIDIA GPUs. While Docker itself provides containerization for applications and their dependencies, it does not natively support GPU acceleration. The NVIDIA Container Toolkit bridges this gap by allowing containers to utilize the host’s GPU hardware. It maps NVIDIA drivers, CUDA libraries, and other necessary components into the container, enabling GPU-accelerated workloads such as AI, deep learning, and high-performance computing.
-
-Add NVIDIA GPG key：
+Add access rights
 
 ```bash
-sudo apt-get install curl -y
-
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-
-curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-
-curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
-  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo usermod -aG docker $USER
+newgrp docker
 ```
 
-![image-20250917091537022](images/image-20250917091537022.png)
+Upon execution of the above command, you can use the docker command without using the sudo command
 
-Install NVIDIA Container Toolkit:
+Install NVIDIA Container Toolkit
+
+```bash
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+# Add key
+curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | \
+sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+# Add repository
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+```
+
+![](./images/3-7-docker-02.png)
+
+Install nvidia-container-toolkit
 
 ```bash
 sudo apt update
 sudo apt install -y nvidia-container-toolkit
 ```
 
-Configure Docker to use NVIDIA runtime：
-
-```
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker
-```
-
-------
-
-Test whether the GPU can be used in the Docker container.
+Enable Docker GPU support
 
 ```bash
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+# Test whether GPU access is available inside the Docker container
 sudo docker run --rm --runtime=nvidia --gpus all --network host ubuntu nvidia-smi
 ```
 
-![image-20250917103828047](images/image-20250917103828047.png)
+> You may need a proxy or mirror source when downloading Docker images or packages.
 
-If the above output indicates that CUDA can be used normally within the Docker image, then it is possible to use CUDA within the Docker container.
+If you cannot install Docker Engine from the official APT repository, you can also download the `.deb` packages manually and install them yourself.
 
-### [Optional]: Allow non-root users to run Docker
+First open the Docker download directory that matches your Ubuntu version:
 
-```
-sudo usermod -aG docker $USER
-newgrp docker
-```
+https://download.docker.com/linux/ubuntu/dists/
 
-After that, you can directly use `docker run` instead of `sudo`.
+Select the corresponding directory according to your current Ubuntu version:
 
-## Common operation commands of docker
+| Ubuntu Version | Version Designator | Example of download path |
+| --- | --- | --- |
+| Ubuntu 20.04 LTS | focal | `dists/focal/pool/stable/` |
+| Ubuntu 22.04 LTS | jammy | `dists/jammy/pool/stable/` |
+| Ubuntu 24.04 LTS | noble | `dists/noble/pool/stable/` |
 
-### Pull a docker image from docker hub
+Select one of the architecture directories that match your system after entering the corresponding version of the directory:
 
-```bash
-docker pull ultralytics/ultralytics:8.3.201-jetson-jetpack6
-```
+amd64:x86 64 Server / PC
 
-![image-20250917133331771](images/image-20250917133331771.png)
+Arm64: ARM 64-bit systems, including Jetson
 
-View the pulled image:
+Armhf
 
-```bash
-docker image list
-```
+S390x
 
-![image-20250917133428648](images/image-20250917133428648.png)
+In that directory, download these five `.deb` packages with matching versions:
 
-enter docker container:
+- `containerd.io_<version>_<arch>.deb`
+- `docker-ce_<version>_<arch>.deb`
+- `docker-ce-cli_<version>_<arch>.deb`
+- `docker-buildx-plugin_<version>_<arch>.deb`
+- `docker-compose-plugin_<version>_<arch>.deb`
 
-```bash
-docker run --runtime nvidia -it --rm --network=host ultralytics/ultralytics:8.3.201-jetson-jetpack6
-```
-
-- **--runtime**  nvidia Specify that the container uses **NVIDIA Container Runtime**, so that the container can access the GPU of Jetson.
-- **-it** `-i` Indicating the interactive mode, `-t` assigns a pseudo-terminal.
-- **--rm** The container will be automatically deleted after it exits.
-- **--network=host**  Allow the container to directly use the host machine's network.
-
-
-
-Enter the container and verify whether CUDA can be called normally.
-
-![image-20250918134423865](images/image-20250918134423865.png)
-
-It can be seen that CUDA can be called normally.
+Then install Docker (using dpkg) to enter the directory where you download the Deb file, execute:
 
 ```bash
-#Check the name of the Docker container
-docker ps -a
+
+sudo dpkg -i ./containerd.io_<version>_<arch>.deb \
+  ./docker-ce_<version>_<arch>.deb \
+  ./docker-ce-cli_<version>_<arch>.deb \
+  ./docker-buildx-plugin_<version>_<arch>.deb \
+  ./docker-compose-plugin_<version>_<arch>.deb
 ```
 
-![image-20250918103244482](images/image-20250918103244482.png)
-
-### File transfer
-
-This part is designed to enable the transfer of host files to the container interior or the transfer of files from the container interior to the host.
+If the hint depends on the missing:
 
 ```bash
-#jetson to docker image
-docker cp <file> <docker container name/container ID>:<Target folder>
-#example
-docker cp ./test_file.txt lucid_carson:/ultralytics
+
+sudo apt -f install
 ```
 
-![image-20250918103334077](images/image-20250918103334077.png)
-
-![image-20250918103359703](images/image-20250918103359703.png)
-
-```
-#docker to jetson
-docker cp <docker container name/container ID>:<Target file> <path to host> 
-#example
-docker cp lucid_carson:/ultralytics/container_file.txt /home/seeed
-```
-
-![image-20250918103619026](images/image-20250918103619026.png)
-
-### Package the image
+If you need to verify Docker service status:
 
 ```bash
-#Check the container name
-docker ps -a
+
+sudo systemctl status docker
 ```
 
-![image-20250918142632980](images/image-20250918142632980.png)
-
-Package it as an image file:
+Docker usually starts automatically after installation is complete. If not started, manually:
 
 ```bash
- #docker commit <container ID> <new image name:tag>
- docker commit 4fc69a374239 my_container:latest
+
+sudo systemctl start docker
 ```
 
- This will create a new image.
+### Docker Basics
 
-![image-20250918142913624](images/image-20250918142913624.png)
+The Docker Engine includes Docker CLI, which provides the command-line tools used to interact with the Docker daemon.
 
-将新创建的镜像进行打包
+Before officially introducing the basic use of Docker, we would like to add the basic concepts of “Image” and “Container” in Docker to help readers better understand what follows.
 
-```bash
-#docker save -o <file name> <REPOSITORY name:TAG>
-docker save -o my_container.tar my_container:latest
-```
+Image
+Docker images are read-only templates that contain the environment, dependencies, and configuration required to run software. An image does not run by itself; it is the base used to create a container.
 
-![image-20250918144309547](images/image-20250918144309547.png)
+Container
+A Docker container is a running instance of an image. Once an image is launched, a container is created. Containers have isolated runtime environments and can be started, stopped, removed, and managed independently.
 
-After the packaging is completed, a.tar file will be generated.
+In short:
 
-### Load the.tar image
+> An image is like an installation package, while a container is a running program instance.
 
-```bash
-docker load -i my_container.tar
-```
+When the relationship between mirrors and containers is understood, it will be followed by a specific example of Docker's commonly used commands and basic usage methods.
 
-### Push the image to Docker Hub
+### 1. View details
 
-```bash
-#登录到docker hub
-#docker login -u <username>
-docker tag my_containe:latest your-dockerhub-username/my-ultralytics:latest
-docker push your-dockerhub-username/my-ultralytics:latest
+> docker info
 
-```
+### 2. View version number
 
-### Delete the image
+> docker --version
 
-```bash
-docker rmi my_containe:latest
-```
+### 3. Pull mirrors
 
+> docker pull <image_name>
 
+If no label is specified, the default pulls the mirror of the last label.
 
-## Reference materials
+Manually pull the assigned docker mirror:
 
-If you want to learn more about Docker operations, please refer to [here](https://docs.docker.com/guides/)
+> docker pull <image_name>:<tag>
+
+### 4. Run mirrors
+
+If there is no local mirror to run, docker automatically pulls the corresponding mirror.
+
+> docker run <image_name>
+
+Start container from specified mirror:
+
+> Docker run ubuntu: 18.04 /bin/bash
+
+This starts the container in interactive mode. Type `exit` to leave the container.
+
+### 4.1. Viewing running containers
+
+> docker ps
+
+### 4.2. Viewing functioning or stopping containers
+
+> docker ps -a
+
+### 5. Cleaning of containers
+
+> docker container prune
+
+### 6. View local mirrors
+
+> Docker images
+
+### 7. Remove mirrors
+
+Note: Mirrors to be deleted need to be disabled and cleaned
+
+> Docker rmi <image name>
+
+### 8. Preservation of containers as new mirrors
+
+> Docker company <container id>
+
+Note: Based on the actual CONTAINER ID and the custom mirror name and tag suffix
+
+### 9. Stop the container
+
+If the container is operated in an interactive mode and the end enters the inner packaging, the exit can be entered inside the container to stop the container;
+
+[Back to Module 3](../README.MD)
