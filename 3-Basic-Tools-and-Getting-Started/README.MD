@@ -25,6 +25,20 @@ Module 3 now serves as the unified entry point for Jetson beginner tooling. It k
 | Module 3.19 |             **[VS Code](./3.19-VS-Code/README.md)**             |
 | Module 3.20 |           **[JupyterLab](./3.20-JupyterLab/README.md)**            |
 | Module 3.21 | **[uv Python Environment Manager](./3.21-uv-Python-Environment-Manager/README.md)** |
+| Module 3.22 | **[Wi-Fi Adapter](./3.22-Wi-Fi-Adapter/README.md)** |
+| Module 3.23 | **[SSD Expansion](./3.23-SSD-Expansion/README.md)** |
+| Module 3.24 | **[CSI Camera](./3.24-CSI-Camera/README.md)** |
+| Module 3.25 | **[USB Camera](./3.25-USB-Camera/README.md)** |
+| Module 3.26 | **[GPIO Basics](./3.26-GPIO-Basics/README.md)** |
+| Module 3.27 | **[Installing the GPIO Library](./3.27-Installing-the-GPIO-Library/README.md)** |
+| Module 3.28 | **[GPIO Input](./3.28-GPIO-Input/README.md)** |
+| Module 3.29 | **[GPIO Output](./3.29-GPIO-Output/README.md)** |
+| Module 3.30 | **[UART Serial Communication](./3.30-UART-Serial-Communication/README.md)** |
+| Module 3.31 | **[I2C Communication](./3.31-I2C-Communication/README.md)** |
+| Module 3.32 | **[Super GPIO](./3.32-Super-GPIO/README.md)** |
+| Module 3.33 | **[Super 4xMipi CSI](./3.33-Super-4xMipi-CSI/README.md)** |
+| Module 3.34 | **[Super Dual Ethernet](./3.34-Super-Dual-Ethernet/README.md)** |
+| Module 3.35 | **[Super Chassis Extension](./3.35-Super-Chassis-Extension/README.md)** |
 
 ## Beginner Topic Coverage
 
